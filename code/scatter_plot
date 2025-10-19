@@ -1,0 +1,89 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Scatterplot of Project Performance vs. Cost Efficiency with Quadrants",
+  "width": 600,
+  "height": 400,
+  "data": {
+    "values": [
+      {"project": "Project A", "performance_score": 85, "cost_efficiency": 92, "category": "Success"},
+      {"project": "Project B", "performance_score": 70, "cost_efficiency": 60, "category": "Needs Improvement"},
+      {"project": "Project C", "performance_score": 95, "cost_efficiency": 78, "category": "High Performance"},
+      {"project": "Project D", "performance_score": 45, "cost_efficiency": 30, "category": "At Risk"},
+      {"project": "Project E", "performance_score": 60, "cost_efficiency": 88, "category": "Cost Effective"},
+      {"project": "Project F", "performance_score": 72, "cost_efficiency": 75, "category": "Success"},
+      {"project": "Project G", "performance_score": 88, "cost_efficiency": 55, "category": "High Performance"},
+      {"project": "Project H", "performance_score": 50, "cost_efficiency": 40, "category": "At Risk"},
+      {"project": "Project I", "performance_score": 75, "cost_efficiency": 80, "category": "Success"},
+      {"project": "Project J", "performance_score": 90, "cost_efficiency": 90, "category": "Exemplary"}
+    ]
+  },
+  "layer": [
+    {
+      // --- Scatterplot Points ---
+      "mark": {"type": "point", "filled": true, "size": 100},
+      "encoding": {
+        "x": {
+          "field": "cost_efficiency",
+          "type": "quantitative",
+          "title": "Cost Efficiency Score (0-100)",
+          "scale": {"domain": [0, 100]}
+        },
+        "y": {
+          "field": "performance_score",
+          "type": "quantitative",
+          "title": "Performance Score (0-100)",
+          "scale": {"domain": [0, 100]}
+        },
+        "color": {
+          "field": "category",
+          "type": "nominal",
+          "title": "Project Category",
+          "legend": {"orient": "bottom"}
+        },
+        "tooltip": [
+          {"field": "project", "title": "Project"},
+          {"field": "performance_score", "title": "Performance"},
+          {"field": "cost_efficiency", "title": "Cost Efficiency"},
+          {"field": "category", "title": "Category"}
+        ]
+      }
+    },
+    {
+      // --- Vertical Reference Line (Cost Efficiency Threshold) ---
+      "mark": {"type": "rule", "color": "gray", "strokeDash": [4, 2]},
+      "encoding": {
+        "x": {"datum": 70} // Threshold for Cost Efficiency
+      }
+    },
+    {
+      // --- Horizontal Reference Line (Performance Threshold) ---
+      "mark": {"type": "rule", "color": "gray", "strokeDash": [4, 2]},
+      "encoding": {
+        "y": {"datum": 70} // Threshold for Performance
+      }
+    },
+    {
+      // --- Quadrant Labels (optional, for clarity) ---
+      "mark": {"type": "text", "fontSize": 12, "fontWeight": "bold", "color": "darkgray"},
+      "data": {
+        "values": [
+          {"x_val": 85, "y_val": 85, "label": "High Perf. /\nHigh Eff.", "align": "center", "baseline": "middle"},
+          {"x_val": 85, "y_val": 15, "label": "Low Perf. /\nHigh Eff.", "align": "center", "baseline": "middle"},
+          {"x_val": 15, "y_val": 85, "label": "High Perf. /\nLow Eff.", "align": "center", "baseline": "middle"},
+          {"x_val": 15, "y_val": 15, "label": "Low Perf. /\nLow Eff.", "align": "center", "baseline": "middle"}
+        ]
+      },
+      "encoding": {
+        "x": {"field": "x_val", "type": "quantitative"},
+        "y": {"field": "y_val", "type": "quantitative"},
+        "text": {"field": "label"},
+        "align": {"field": "align"},
+        "baseline": {"field": "baseline"}
+      }
+    }
+  ],
+  "config": {
+    "axis": {"grid": true, "domain": false},
+    "view": {"stroke": "transparent"}
+  }
+}
