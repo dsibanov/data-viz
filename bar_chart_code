@@ -1,0 +1,57 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "description": "Vertical Grouped Bar Chart with Direct Data Labels",
+  "width": 800,
+  "height": 500,
+  "data": {
+    "values": [
+      {"quarter": "Q1", "region": "North", "metric_type": "Revenue", "value": 5000000},
+      {"quarter": "Q1", "region": "South", "metric_type": "Revenue", "value": 7500000},
+      {"quarter": "Q1", "region": "East", "metric_type": "Revenue", "value": 2000000},
+      {"quarter": "Q2", "region": "North", "metric_type": "Revenue", "value": 6200000},
+      {"quarter": "Q2", "region": "South", "metric_type": "Revenue", "value": 8100000},
+      {"quarter": "Q2", "region": "East", "metric_type": "Revenue", "value": 2500000},
+      {"quarter": "Q3", "region": "North", "metric_type": "Revenue", "value": 7000000},
+      {"quarter": "Q3", "region": "South", "metric_type": "Revenue", "value": 9500000},
+      {"quarter": "Q3", "region": "East", "metric_type": "Revenue", "value": 3000000},
+      {"quarter": "Q4", "region": "North", "metric_type": "Revenue", "value": 8500000},
+      {"quarter": "Q4", "region": "South", "metric_type": "Revenue", "value": 11000000},
+      {"quarter": "Q4", "region": "East", "metric_type": "Revenue", "value": 3800000}
+    ]
+  },
+  "transform": [
+    {"filter": "datum.metric_type === 'Revenue'"}
+  ],
+  "encoding": {
+    "x": {"field": "quarter", "title": "Fiscal Quarter", "axis": {"titleFontSize": 14}},
+    "y": {"field": "value", "title": "Total Revenue", "axis": {"format": "$.2s", "titleFontSize": 14}}
+  },
+  "layer": [
+    {
+      "mark": {"type": "bar", "opacity": 0.8},
+      "encoding": {
+        "y": {"aggregate": "sum", "field": "value"},
+        "xOffset": {"field": "region", "title": null},
+        "color": {"field": "region", "title": "Region", "legend": {"orient": "bottom"}},
+        "tooltip": [
+          {"field": "region", "title": "Region"},
+          {"field": "quarter", "title": "Quarter"},
+          {"field": "value", "title": "Revenue", "format": "$,"}
+        ]
+      }
+    },
+    {
+      "mark": {"type": "text", "align": "center", "baseline": "bottom", "dy": -5, "fontSize": 12},
+      "encoding": {
+        "y": {"aggregate": "sum", "field": "value"},
+        "xOffset": {"field": "region"},
+        "text": {"aggregate": "sum", "field": "value", "format": "$.2s"},
+        "color": {"value": "black"}
+      }
+    }
+  ],
+  "config": {
+    "view": {"stroke": "transparent"},
+    "bar": {"orient": "vertical"}
+  }
+}
