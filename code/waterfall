@@ -1,0 +1,138 @@
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+  "description": "Monthly P&L / Inventory Changes with Highlighted Max Delta",
+  "data": {
+    "values": [
+      {"label": "Start", "amount": 4000},
+      {"label": "Jan", "amount": 1707},
+      {"label": "Feb", "amount": -1425},
+      {"label": "Mar", "amount": -1030},
+      {"label": "Apr", "amount": 1812},
+      {"label": "May", "amount": -1067},
+      {"label": "Jun", "amount": -1481},
+      {"label": "Jul", "amount": 1228},
+      {"label": "Aug", "amount": 1176},
+      {"label": "Sep", "amount": 1146},
+      {"label": "Oct", "amount": 1205},
+      {"label": "Nov", "amount": -1388},
+      {"label": "Dec", "amount": 1492},
+      {"label": "End", "amount": 0}
+    ]
+  },
+  "width": 800,
+  "height": 450,
+  "transform": [
+    // 1. Calculate running sum (the bar endpoints) and determine absolute change
+    {"window": [{"op": "sum", "field": "amount", "as": "sum"}]},
+    {"calculate": "abs(datum.amount)", "as": "abs_amount"},
+    // 2. Find the largest change magnitude across all months
+    {"joinaggregate": [
+      {"op": "max", "field": "abs_amount", "as": "max_abs_amount"}
+    ]},
+    // 3. Determine the bar starting point (the 'base')
+    {
+      "calculate": "datum.label === 'End' ? 0 : datum.sum - datum.amount",
+      "as": "previous_sum"
+    },
+    // 4. Clean up amounts and calculate bar center for label placement
+    {"calculate": "datum.label === 'End' ? datum.sum : datum.amount", "as": "amount_value"},
+    {"calculate": "(datum.sum + datum.previous_sum) / 2", "as": "center"},
+    {"calculate": "(datum.label !== 'Start' && datum.label !== 'End' && datum.amount_value >= 0 ? '+' : '') + datum.amount_value", "as": "text_amount"},
+    // 5. Calculate lead for connector lines
+    {"window": [{"op": "lead", "field": "label", "as": "lead"}]},
+    {"calculate": "datum.lead === null ? datum.label : datum.lead", "as": "lead_label"}
+  ],
+  "encoding": {
+    "x": {
+      "field": "label",
+      "type": "ordinal",
+      "sort": null,
+      "axis": {"labelAngle": 0, "title": "Period"}
+    }
+  },
+  "layer": [
+    {
+      // Layer 1: The main bars (Start/End, Increase, Decrease, and Highlight)
+      "mark": {"type": "bar", "size": 45},
+      "encoding": {
+        "y": {
+          "field": "previous_sum",
+          "type": "quantitative",
+          "title": "Balance / Total Amount",
+          "axis": {"format": "$,.0f"}
+        },
+        "y2": {"field": "sum"},
+        "color": {
+          "condition": [
+            // Condition 1: Highlight Start/End bars (Neutral color)
+            {"test": "datum.label === 'Start' || datum.label === 'End'", "value": "#4b779e"},
+            // Condition 2: Highlight the single largest change (Distinct color)
+            {"test": "datum.abs_amount === datum.max_abs_amount", "value": "#e377c2"},
+            // Condition 3: Negative changes (Loss/Decrease color)
+            {"test": "datum.sum < datum.previous_sum", "value": "#d62728"}
+          ],
+          // Default: Positive changes (Gain/Increase color)
+          "value": "#2ca02c"
+        },
+        "tooltip": [
+          {"field": "label", "title": "Period"},
+          {"field": "previous_sum", "title": "Balance Start", "format": "$,.0f"},
+          {"field": "sum", "title": "Balance End", "format": "$,.0f"},
+          {"field": "amount_value", "title": "Monthly Change", "format": "$,.0f"}
+        ]
+      }
+    },
+    {
+      // Layer 2: The connector rule lines
+      "mark": {
+        "type": "rule",
+        "color": "#404040",
+        "opacity": 1,
+        "strokeWidth": 2,
+        "xOffset": -22.5,
+        "x2Offset": 22.5
+      },
+      "encoding": {
+        "x2": {"field": "lead_label"},
+        "y": {"field": "sum", "type": "quantitative"}
+      }
+    },
+    {
+      // Layer 3: The running total text labels (on top of the bars)
+      "mark": {"type": "text", "dy": {"expr": "datum.amount_value >= 0 ? -12 : 12"}, "baseline": "middle"},
+      "encoding": {
+        "y": {"field": "sum", "type": "quantitative"},
+        "text": {"field": "sum", "type": "quantitative", "format": "$,.0f"},
+        "fontWeight": {
+          "condition": [
+            // Highlight End label text
+            {"test": "datum.label === 'End'", "value": "bolder"}
+          ],
+          "value": "normal"
+        },
+        "fontSize": {
+          "condition": [
+            // Make End label text slightly larger
+            {"test": "datum.label === 'End'", "value": 16}
+          ],
+          "value": 12
+        }
+      }
+    },
+    {
+      // Layer 4: The change amount text labels (in the center of the bars)
+      "mark": {"type": "text", "fontWeight": "bold", "baseline": "middle", "fontSize": 14},
+      "encoding": {
+        "y": {"field": "center", "type": "quantitative"},
+        "text": {"field": "text_amount", "type": "nominal"},
+        "color": {
+          "condition": [
+            {"test": "datum.label === 'Start' || datum.label === 'End'", "value": "#fff"}
+          ],
+          "value": "white"
+        }
+      }
+    }
+  ],
+  "config": {"axis": {"grid": true}}
+}
